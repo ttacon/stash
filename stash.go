@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/ttacon/pretty"
 )
 
 const userAgent = "GoStashClient-1.0"
@@ -32,6 +30,8 @@ func (c *Client) GroupService() GroupService {
 
 type GroupService interface {
 	CreateGroup(name string) (*Group, error)
+	GetGroup(name string) (*Group, error)
+	GetGroups(filter string) ([]*Group, error)
 }
 
 func (c *Client) createReq(method, urlStr string, body interface{}) (*http.Request, error) {
@@ -81,7 +81,6 @@ func (g *groupService) CreateGroup(name string) (*Group, error) {
 		return nil, err
 	}
 
-	pretty.Println(req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -90,12 +89,44 @@ func (g *groupService) CreateGroup(name string) (*Group, error) {
 	var r Group
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	resp.Body.Close()
-	pretty.Println(resp.Status)
 	if err != nil {
 		return nil, err
 	}
 
-	pretty.Println(r)
+	return &r, nil
+}
 
-	return nil, nil
+func (g *groupService) GetGroups(filter string) ([]*Group, error) {
+	req, err := g.createReq(
+		"GET", fmt.Sprintf("/rest/api/1.0/admin/groups?filter=%s", filter), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var r PagedGroup
+	err = json.NewDecoder(resp.Body).Decode(&r)
+	resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Values, nil
+}
+
+func (g *groupService) GetGroup(name string) (*Group, error) {
+	groups, err := g.GetGroups(name)
+	if err != nil {
+		return nil, err
+	} else if len(groups) == 0 {
+		return nil, fmt.Errorf("no group found")
+	} else if len(groups) != 1 {
+		// TODO(ttacon): should we try to find an exact match among the groups though?
+		return nil, fmt.Errorf("more than one group found")
+	}
+	return groups[0], nil
 }
