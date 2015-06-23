@@ -28,12 +28,6 @@ func (c *Client) GroupService() GroupService {
 	return &groupService{Client: c}
 }
 
-type GroupService interface {
-	CreateGroup(name string) (*Group, error)
-	GetGroup(name string) (*Group, error)
-	GetGroups(filter string) ([]*Group, error)
-}
-
 func (c *Client) createReq(method, urlStr string, body interface{}) (*http.Request, error) {
 	// this method is based off
 	// https://github.com/google/go-github/blob/master/github/github.go:
@@ -72,6 +66,13 @@ func (c *Client) createReq(method, urlStr string, body interface{}) (*http.Reque
 
 type groupService struct {
 	*Client
+}
+
+type GroupService interface {
+	CreateGroup(name string) (*Group, error)
+	GetGroup(name string) (*Group, error)
+	GetGroups(filter string) ([]*Group, error)
+	DeleteGroup(name string) (*Group, error)
 }
 
 func (g *groupService) CreateGroup(name string) (*Group, error) {
@@ -129,4 +130,26 @@ func (g *groupService) GetGroup(name string) (*Group, error) {
 		return nil, fmt.Errorf("more than one group found")
 	}
 	return groups[0], nil
+}
+
+func (g *groupService) DeleteGroup(name string) (*Group, error) {
+	req, err := g.createReq(
+		"DELETE", fmt.Sprintf("/rest/api/1.0/admin/groups?name=%s", name), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var r Group
+	err = json.NewDecoder(resp.Body).Decode(&r)
+	resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return &r, nil
 }
