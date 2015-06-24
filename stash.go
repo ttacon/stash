@@ -8,6 +8,8 @@ import (
 	"net/url"
 )
 
+// TODO(ttacon): appropriately URL escape query params
+
 const userAgent = "GoStashClient-1.0"
 
 type Client struct {
@@ -80,6 +82,7 @@ type GroupService interface {
 	DeleteGroup(name string) (*Group, error)
 
 	AddUsers(group string, users ...string) error
+	GetUsers(group, filter string) ([]*User, error)
 }
 
 func (g *groupService) CreateGroup(name string) (*Group, error) {
@@ -163,7 +166,6 @@ func (g *groupService) DeleteGroup(name string) (*Group, error) {
 
 func (g *groupService) AddUsers(group string, users ...string) error {
 	// TODO(ttacon): validate len(users) > 0 and properly return HTTP errors
-
 	req, err := g.createReq(
 		"POST", "/rest/api/1.0/admin/groups/add-users", map[string]interface{}{
 			"group": group,
@@ -183,4 +185,32 @@ func (g *groupService) AddUsers(group string, users ...string) error {
 	}
 
 	return nil
+}
+
+// Stash uses a ton of PagedResources - create a paged interface? and return
+// the concrete paged reosurces - and allow them to now how to retrieve more
+// of themselves (the next pages, etc - short circuit logic is fine too:
+// i.e. if we know there can't be any more pages, error on Next())
+
+func (g *groupService) GetUsers(group, filter string) ([]*User, error) {
+	loc := fmt.Sprintf(
+		"/rest/api/1.0/admin/groups/more-members?context=%s", group)
+	if len(filter) > 0 {
+		loc += fmt.Sprintf("&filter=%s", filter)
+	}
+
+	req, err := g.createReq("GET", loc, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var r PagedUsers
+	err = json.NewDecoder(resp.Body).Decode(&r)
+	resp.Body.Close()
+	return r.Values, err
 }
