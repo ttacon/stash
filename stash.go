@@ -57,6 +57,11 @@ func (c *Client) createReq(method, urlStr string, body interface{}) (*http.Reque
 		return nil, err
 	}
 
+	if body != nil {
+		// then we encoded it so add Content-Type
+		req.Header.Add("Content-Type", "application/json")
+	}
+
 	// TODO(ttacon): identify which headers we should add
 	// e.g. "Accept", "Content-Type", "User-Agent", etc.
 	req.Header.Add("User-Agent", userAgent)
@@ -73,6 +78,8 @@ type GroupService interface {
 	GetGroup(name string) (*Group, error)
 	GetGroups(filter string) ([]*Group, error)
 	DeleteGroup(name string) (*Group, error)
+
+	AddUsers(group string, users ...string) error
 }
 
 func (g *groupService) CreateGroup(name string) (*Group, error) {
@@ -152,4 +159,28 @@ func (g *groupService) DeleteGroup(name string) (*Group, error) {
 	}
 
 	return &r, nil
+}
+
+func (g *groupService) AddUsers(group string, users ...string) error {
+	// TODO(ttacon): validate len(users) > 0 and properly return HTTP errors
+
+	req, err := g.createReq(
+		"POST", "/rest/api/1.0/admin/groups/add-users", map[string]interface{}{
+			"group": group,
+			"users": users,
+		})
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed request: %s", resp.Status)
+	}
+
+	return nil
 }
