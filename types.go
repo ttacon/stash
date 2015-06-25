@@ -70,3 +70,11 @@ type Repo struct {
 	StatusMessage string                         `json:"statusMessage"`
 	Links         map[string][]map[string]string `json:"links"`
 }
+
+type Branch struct {
+	ID              string `json:"id"`
+	DisplayID       string `json:"displayId"`
+	LatestChangeset string `json:"latestChangeset"`
+	LatestCommit    string `json:"latestCommit"`
+	IsDefault       bool   `json:"isDefault"`
+}
