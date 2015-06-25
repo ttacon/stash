@@ -30,6 +30,10 @@ func (c *Client) GroupService() GroupService {
 	return &groupService{Client: c}
 }
 
+func (c *Client) RepoService() RepoService {
+	return &repoService{Client: c}
+}
+
 func (c *Client) createReq(method, urlStr string, body interface{}) (*http.Request, error) {
 	// this method is based off
 	// https://github.com/google/go-github/blob/master/github/github.go:
