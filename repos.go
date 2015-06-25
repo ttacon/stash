@@ -8,6 +8,7 @@ import (
 
 type RepoService interface {
 	GetRepos(string) (*PagedRepos, error)
+	CreateRepo(string, string, string) (*Repo, error)
 }
 
 type repoService struct {
@@ -27,6 +28,35 @@ func (r *repoService) GetRepos(projectKey string) (*PagedRepos, error) {
 	}
 
 	var b PagedRepos
+	err = json.NewDecoder(resp.Body).Decode(&b)
+	resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return &b, nil
+}
+
+// where scmId = git or hg
+func (r *repoService) CreateRepo(projectKey, name, scmID string) (*Repo, error) {
+	req, err := r.createReq(
+		"POST",
+		fmt.Sprintf("/rest/api/1.0/projects/%s/repos", projectKey),
+		map[string]string{
+			"name":  name,
+			"scmId": scmID,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var b Repo
 	err = json.NewDecoder(resp.Body).Decode(&b)
 	resp.Body.Close()
 	if err != nil {
