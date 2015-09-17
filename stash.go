@@ -42,6 +42,10 @@ func (c *Client) UserService() UserService {
 	return &userService{Client: c}
 }
 
+func (c *Client) PullRequestService() PullRequestService {
+	return &pullRequestService{Client: c}
+}
+
 func (c *Client) createReq(method, urlStr string, body interface{}) (*http.Request, error) {
 	// this method is based off
 	// https://github.com/google/go-github/blob/master/github/github.go:

@@ -50,16 +50,6 @@ type PagedRepos struct {
 	Values     []*Repo `json:"values"`
 }
 
-type Project struct {
-	Key    string                         `json:"key"`
-	ID     int                            `json:"id"`
-	Name   string                         `json:"name"`
-	Public bool                           `json:"public"`
-	Type   string                         `json:"type"`
-	Link   map[string]string              `json:"link"`
-	Links  map[string][]map[string]string `json:"links"`
-}
-
 type Repo struct {
 	Project       Project                        `json:"project"`
 	Public        bool                           `json:"public"`
