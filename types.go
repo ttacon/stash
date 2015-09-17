@@ -38,6 +38,10 @@ type User struct {
 	MutableGroups               bool                           `json:"mutableGroups"`
 }
 
+func (u User) IsEmpty() bool {
+	return len(u.Slug) == 0 && u.ID == 0
+}
+
 type PagedRepos struct {
 	Size       int     `json:"size"`
 	Limit      int     `json:"limit"`
