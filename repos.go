@@ -68,6 +68,8 @@ func (r *repoService) CreateRepo(projectKey, name, scmID string) (*Repo, error) 
 }
 
 func (r *repoService) CreateBranch(projKey, repo, name, startRef string) (*Branch, error) {
+	// you CAN get a 409 here if the repo hasn't been initialized (the docs
+	// don't say that you can)
 	req, err := r.createReq(
 		"POST",
 		fmt.Sprintf("/rest/branch-utils/1.0/projects/%s/repos/%s/branches",
