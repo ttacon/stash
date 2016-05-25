@@ -8,6 +8,7 @@ import (
 
 type RepoService interface {
 	GetRepos(string) (*PagedRepos, error)
+	GetRepo(string, string) (*Repo, error)
 	CreateRepo(string, string, string) (*Repo, error)
 	CreateBranch(string, string, string, string) (*Branch, error)
 }
@@ -29,6 +30,28 @@ func (r *repoService) GetRepos(projectKey string) (*PagedRepos, error) {
 	}
 
 	var b PagedRepos
+	err = json.NewDecoder(resp.Body).Decode(&b)
+	resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return &b, nil
+}
+
+func (r *repoService) GetRepo(projectKey, repoKey string) (*Repo, error) {
+	req, err := r.createReq(
+		"GET", fmt.Sprintf("/rest/api/1.0/projects/%s/repos/%s", projectKey, repoKey), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var b Repo
 	err = json.NewDecoder(resp.Body).Decode(&b)
 	resp.Body.Close()
 	if err != nil {
