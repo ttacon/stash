@@ -33,7 +33,7 @@ func (r *repoService) GetRepos(projectKey string) (*PagedRepos, error) {
 	var b PagedRepos
 
 	if resp.StatusCode != http.StatusOK {
-		return &b, errors.New("Recieved a non 200 response")
+		return &b, errors.New("Received a non 200 response")
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&b)
@@ -60,7 +60,7 @@ func (r *repoService) GetRepo(projectKey, repoKey string) (*Repo, error) {
 	var b Repo
 
 	if resp.StatusCode != http.StatusOK {
-		return &b, errors.New("Recieved a non 200 response")
+		return &b, errors.New("Received a non 200 response")
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&b)
@@ -94,7 +94,7 @@ func (r *repoService) CreateRepo(projectKey, name, scmID string) (*Repo, error) 
 	var b Repo
 
 	if resp.StatusCode != http.StatusCreated {
-		return &b, errors.New("Recieved a non 200 response")
+		return &b, errors.New("Received a non 200 response")
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&b)
@@ -128,7 +128,7 @@ func (r *repoService) CreateBranch(projKey, repo, name, startRef string) (*Branc
 	var b Branch
 
 	if resp.StatusCode != http.StatusCreated {
-		return &b, errors.New("Recieved a non 201 response")
+		return &b, errors.New("Received a non 201 response")
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&b)
